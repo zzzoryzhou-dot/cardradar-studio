@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CardRadar Content Studio v4</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0d1f28;color:#fff;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;}
+#api-bar{position:fixed;top:0;left:0;width:100%;z-index:9999;background:#011e29;border-bottom:1px solid rgba(2,255,255,0.2);padding:9px 20px;display:flex;align-items:center;gap:10px;}
+#api-bar label{font-size:12px;color:rgba(2,255,255,0.7);white-space:nowrap;}
+#api-key-in{flex:1;max-width:420px;background:rgba(0,0,0,0.35);border:1px solid rgba(2,255,255,0.28);border-radius:6px;color:#fff;font-size:12px;padding:5px 11px;outline:none;font-family:monospace;}
+#api-key-in:focus{border-color:#02FFFF;}
+#api-confirm{padding:5px 14px;background:#02FFFF;color:#011e29;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
+#api-status{font-size:12px;color:rgba(255,255,255,0.35);}
+#api-note{font-size:11px;color:rgba(255,255,255,0.22);margin-left:auto;}
+.wrap{display:flex;height:calc(100vh - 42px);margin-top:42px;}
+.sidebar{width:216px;flex-shrink:0;background:#0a1e28;border-right:1px solid rgba(2,255,255,0.07);padding:12px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+.s-label{font-size:9px;letter-spacing:2.5px;color:rgba(255,255,255,0.35);padding:12px 10px 5px;font-weight:600;}
+.s-label:first-child{padding-top:4px;}
+.nav{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:13px;color:rgba(255,255,255,0.6);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .12s;}
+.nav i{font-size:15px;width:16px;flex-shrink:0;}
+.nav:hover{background:rgba(2,255,255,0.07);color:#fff;}
+.nav.active{background:rgba(2,255,255,0.1);color:#02FFFF;border:1px solid rgba(2,255,255,0.2);}
+.main{flex:1;overflow-y:auto;padding:24px 28px;}
+.page{display:none;}.page.active{display:block;}
+.ph{margin-bottom:20px;}
+.pt{font-size:20px;font-weight:600;}
+.ps{font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;line-height:1.5;}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+.tc{padding:11px 13px;border-radius:8px;border:1px solid rgba(2,255,255,0.1);background:#0f2733;cursor:pointer;transition:all .12s;text-align:left;}
+.tc:hover{border-color:rgba(2,255,255,0.3);}
+.tc.sel{border-color:#02FFFF;background:rgba(2,255,255,0.08);}
+.tc i{font-size:17px;color:rgba(255,255,255,0.5);display:block;margin-bottom:5px;}
+.tc.sel i{color:#02FFFF;}
+.tc-n{font-size:12px;font-weight:600;color:#fff;}
+.tc-d{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;line-height:1.35;}
+.dform{display:none;}.dform.active{display:block;}
+.fg{display:grid;gap:12px;margin-bottom:14px;}
+.fg2{grid-template-columns:1fr 1fr;}.fg1{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:10px;letter-spacing:1px;color:rgba(255,255,255,0.4);font-weight:600;}
+input,select,textarea{background:#0d2535;border:1px solid rgba(2,255,255,0.14);border-radius:7px;color:#fff;font-family:inherit;font-size:13px;padding:8px 12px;outline:none;transition:border .12s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:#02FFFF;}
+select option{background:#0d2535;}
+textarea{resize:vertical;min-height:68px;line-height:1.5;}
+input[type=date],input[type=datetime-local]{color-scheme:dark;}
+.btn-row{display:flex;gap:8px;margin-top:14px;}
+.btn-p{padding:9px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;background:#02FFFF;border:none;color:#011e29;display:flex;align-items:center;gap:6px;}
+.btn-p:hover{background:#00e0e0;}
+.btn-g{padding:9px 14px;border-radius:7px;font-size:13px;cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.5);}
+.btn-g:hover{border-color:rgba(255,255,255,0.3);color:#fff;}
+.spin{display:none;padding:28px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px;}
+.spin::before{content:'';display:block;width:28px;height:28px;border-radius:50%;border:2px solid rgba(2,255,255,0.2);border-top-color:#02FFFF;animation:spin .8s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.out{display:none;margin-top:16px;}
+.osec{margin-bottom:13px;}
+.olabel{display:flex;justify-content:space-between;align-items:center;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.35);font-weight:600;margin-bottom:5px;}
+.otext{background:#0a1e28;border-radius:7px;padding:12px 14px;font-size:13px;line-height:1.7;color:rgba(255,255,255,0.85);white-space:pre-wrap;word-break:break-word;border:1px solid rgba(2,255,255,0.08);}
+.otext.subj{font-size:15px;font-weight:600;color:#fff;}
+.otext.cta{display:inline-block;border:1.5px solid rgba(255,255,255,0.5);border-radius:6px;padding:8px 20px;font-weight:600;font-size:14px;}
+.copy-sm{font-size:11px;padding:3px 9px;border-radius:5px;background:rgba(2,255,255,0.08);border:1px solid rgba(2,255,255,0.2);color:#02FFFF;cursor:pointer;}
+.copy-sm:hover{background:rgba(2,255,255,0.18);}
+.comp-box{background:#0a1e28;border-radius:8px;padding:12px 14px;margin-top:12px;border:1px solid rgba(2,255,255,0.08);}
+.comp-t{font-size:9px;letter-spacing:2px;color:#02FFFF;font-weight:600;margin-bottom:8px;}
+.crow{display:flex;align-items:flex-start;gap:7px;font-size:12px;margin-bottom:5px;line-height:1.4;}
+.tag-group{margin-bottom:12px;}
+.tgl{font-size:10px;letter-spacing:1px;color:rgba(255,255,255,0.35);font-weight:600;margin-bottom:6px;}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:5px;}
+.tag{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid rgba(2,255,255,0.15);color:rgba(255,255,255,0.5);cursor:pointer;transition:all .12s;background:#0a1e28;}
+.tag:hover{border-color:rgba(2,255,255,0.35);color:#fff;}
+.tag.on{background:rgba(2,255,255,0.1);border-color:#02FFFF;color:#02FFFF;}
+.divider{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.3);font-weight:600;display:flex;align-items:center;gap:10px;margin:18px 0 12px;}
+.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.07);}
+.hist-item{background:#0a1e28;border:1px solid rgba(2,255,255,0.08);border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+.hist-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.hist-type{font-size:9px;letter-spacing:2px;color:#02FFFF;font-weight:600;}
+.hist-prev{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.6;max-height:54px;overflow:hidden;}
+
+/* AB specific */
+.ab-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:14px;}
+.ab-card{background:#0a1e28;border:1px solid rgba(2,255,255,0.12);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px;}
+.ab-hook-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+.ab-subj{font-size:14px;font-weight:700;color:#fff;line-height:1.3;}
+.ab-prev{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;}
+.ab-label-row{font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);font-weight:600;margin-bottom:2px;}
+.ab-body-text{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.65;white-space:pre-wrap;}
+.ab-cta-pill{display:inline-block;border:1px solid rgba(255,255,255,0.4);border-radius:5px;padding:6px 14px;font-size:12px;font-weight:600;color:#fff;margin-top:2px;}
+.ab-note{font-size:11px;color:rgba(255,255,255,0.3);font-style:italic;}
+
+/* compliance */
+.comp-section{margin-bottom:14px;}
+.comp-section-title{font-size:10px;letter-spacing:2px;color:rgba(2,255,255,0.7);font-weight:600;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid rgba(2,255,255,0.1);}
+.comp-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;margin-bottom:7px;line-height:1.5;}
+.comp-item .icon{font-size:13px;flex-shrink:0;margin-top:1px;}
+.comp-item .label{flex:1;}
+.comp-item .detail{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.comp-tip-box{background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:7px;padding:10px 12px;margin-top:10px;}
+.comp-tip-title{font-size:10px;letter-spacing:1px;color:#FFD700;font-weight:600;margin-bottom:6px;}
+.comp-tip-item{font-size:11px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:4px;}
+.comp-tip-item::before{content:'→ ';color:#FFD700;}
+.word-avoid-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
+.word-chip{font-size:11px;padding:4px 8px;border-radius:5px;background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.25);color:rgba(255,77,109,0.85);text-align:center;}
+.score-bar{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.score-label{font-size:12px;color:rgba(255,255,255,0.5);width:80px;flex-shrink:0;}
+.score-track{flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;}
+.score-fill{height:100%;border-radius:3px;transition:width .3s;}
+.score-val{font-size:12px;font-weight:600;width:35px;text-align:right;}
+</style>
+</head>
+<body>
+
+<div id="api-bar">
+  <label>Anthropic API Key</label>
+  <input id="api-key-in" type="password" placeholder="sk-ant-api03-...">
+  <button id="api-confirm" onclick="saveKey()">确认</button>
+  <span id="api-status">未设置 — 请先填入 Key</span>
+  <span id="api-note">Key 仅存于内存，关闭页面自动清除</span>
+</div>
+
+<div class="wrap">
+<div class="sidebar">
+  <div class="s-label">EDM 邮件</div>
+  <button class="nav active" onclick="nav('edm-new',this)"><i class="ti ti-user-plus"></i>新用户系列</button>
+  <button class="nav" onclick="nav('edm-active',this)"><i class="ti ti-bolt"></i>活跃用户系列</button>
+  <button class="nav" onclick="nav('edm-recall',this)"><i class="ti ti-refresh"></i>召回唤醒系列</button>
+  <button class="nav" onclick="nav('edm-general',this)"><i class="ti ti-mail"></i>通用场景系列</button>
+  <div class="s-label">论坛帖文</div>
+  <button class="nav" onclick="nav('forum-official',this)"><i class="ti ti-speakerphone"></i>CardRadar Official</button>
+  <button class="nav" onclick="nav('forum-risk',this)"><i class="ti ti-alert-triangle"></i>Risk Reports</button>
+  <button class="nav" onclick="nav('forum-rate',this)"><i class="ti ti-trending-up"></i>Apple / Google Play</button>
+  <button class="nav" onclick="nav('forum-market',this)"><i class="ti ti-chart-bar"></i>Market Intel</button>
+  <button class="nav" onclick="nav('forum-community',this)"><i class="ti ti-message-circle"></i>社区互动</button>
+  <div class="s-label">社媒文案</div>
+  <button class="nav" onclick="nav('social-x',this)"><i class="ti ti-brand-x"></i>X (Twitter)</button>
+  <button class="nav" onclick="nav('social-ig',this)"><i class="ti ti-brand-instagram"></i>Instagram</button>
+  <button class="nav" onclick="nav('social-tiktok',this)"><i class="ti ti-brand-tiktok"></i>TikTok</button>
+  <div class="s-label">工具箱</div>
+  <button class="nav" onclick="nav('tool-compliance',this)"><i class="ti ti-shield-check"></i>合规检测器</button>
+  <button class="nav" onclick="nav('tool-ab',this)"><i class="ti ti-test-pipe"></i>A/B 测试生成</button>
+  <button class="nav" onclick="nav('tool-history',this)"><i class="ti ti-history"></i>历史记录</button>
+</div>
+
+<div class="main">
+
+<!-- EDM NEW -->
+<div class="page active" id="page-edm-new">
+  <div class="ph"><div class="pt">新用户系列邮件</div><div class="ps">覆盖注册 → 激活 → 首单转化的完整旅程</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'en')" data-t="welcome"><i class="ti ti-hand-stop"></i><div class="tc-n">欢迎邮件</div><div class="tc-d">注册后即时触发</div></div>
+    <div class="tc" onclick="selType(this,'en')" data-t="activate"><i class="ti ti-target"></i><div class="tc-n">激活引导</div><div class="tc-d">D3 未完成首次比价</div></div>
+    <div class="tc" onclick="selType(this,'en')" data-t="first_trade"><i class="ti ti-currency-dollar"></i><div class="tc-n">首单促成</div><div class="tc-d">D7 已比价未成交</div></div>
+  </div>
+  <div class="dform active" id="en-welcome">
+    <div class="fg fg2">
+      <div class="field"><label>注册日期</label><input type="date" id="en-w-date"></div>
+      <div class="field"><label>当前最高汇率示例</label><input id="en-w-rate" value="₦1,089 for Steam $100"></div>
+      <div class="field"><label>覆盖平台数</label><input id="en-w-plat" value="16+"></div>
+      <div class="field"><label>当前活动（如有）</label><input id="en-w-act" placeholder="e.g. Chief Rate Hunter, $15 prize"></div>
+    </div>
+  </div>
+  <div class="dform" id="en-activate">
+    <div class="fg fg2">
+      <div class="field"><label>注册天数</label><input id="en-a-days" value="3"></div>
+      <div class="field"><label>今日最高汇率</label><input id="en-a-rate" value="₦1,089 Steam"></div>
+      <div class="field"><label>比价步骤说明</label><input id="en-a-steps" value="Select card → Enter amount → Hit Compare Now"></div>
+      <div class="field"><label>激励内容（如有）</label><input id="en-a-bonus" placeholder="e.g. First 100 users get bonus Zaps"></div>
+    </div>
+  </div>
+  <div class="dform" id="en-first_trade">
+    <div class="fg fg2">
+      <div class="field"><label>注册天数</label><input id="en-f-days" value="7"></div>
+      <div class="field"><label>用户已查询卡种</label><input id="en-f-card" placeholder="e.g. Steam $100"></div>
+      <div class="field"><label>推荐平台及汇率</label><input id="en-f-plat" value="Troveloop — ₦1,089"></div>
+      <div class="field"><label>首单激励</label><input id="en-f-bonus" placeholder="e.g. 完成首单参与 Chief Rate Hunter"></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genEDM('new')"><i class="ti ti-bolt"></i> 生成邮件</button><button class="btn-g" onclick="clearOut('edm-new')">清除</button></div>
+  <div class="spin" id="spin-edm-new">正在生成邮件内容...</div>
+  <div class="out" id="out-edm-new"></div>
+</div>
+
+<!-- EDM ACTIVE -->
+<div class="page" id="page-edm-active">
+  <div class="ph"><div class="pt">活跃用户系列邮件</div><div class="ps">汇率播报、活动通知、功能上新、月报、获奖通知、调研邀请</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'ea')" data-t="rate"><i class="ti ti-trending-up"></i><div class="tc-n">汇率播报</div><div class="tc-d">实时数据对比</div></div>
+    <div class="tc" onclick="selType(this,'ea')" data-t="activity"><i class="ti ti-target"></i><div class="tc-n">活动通知</div><div class="tc-d">活动上线/倒计时</div></div>
+    <div class="tc" onclick="selType(this,'ea')" data-t="feature"><i class="ti ti-sparkles"></i><div class="tc-n">功能上新</div><div class="tc-d">新板块/新功能</div></div>
+    <div class="tc" onclick="selType(this,'ea')" data-t="monthly"><i class="ti ti-chart-pie"></i><div class="tc-n">月度账单</div><div class="tc-d">个性化数据回顾</div></div>
+    <div class="tc" onclick="selType(this,'ea')" data-t="winner"><i class="ti ti-trophy"></i><div class="tc-n">获奖通知</div><div class="tc-d">告知用户中奖</div></div>
+    <div class="tc" onclick="selType(this,'ea')" data-t="survey"><i class="ti ti-clipboard-list"></i><div class="tc-n">调研邀请</div><div class="tc-d">问卷邀请+奖励</div></div>
+  </div>
+  <div class="dform active" id="ea-rate">
+    <div class="fg fg2">
+      <div class="field"><label>卡种</label><input id="ea-r-card" value="Steam $100"></div>
+      <div class="field"><label>数据时间</label><input type="datetime-local" id="ea-r-time"></div>
+      <div class="field"><label>最高平台 — 汇率</label><input id="ea-r-p1" value="Troveloop — ₦997 (best)"></div>
+      <div class="field"><label>第二平台 — 汇率</label><input id="ea-r-p2" value="Tbay — ₦947"></div>
+      <div class="field"><label>第三平台 — 汇率</label><input id="ea-r-p3" value="Benklo — ₦923"></div>
+      <div class="field"><label>最低平台 — 汇率</label><input id="ea-r-p4" value="Cardgoal — ₦886"></div>
+    </div>
+  </div>
+  <div class="dform" id="ea-activity">
+    <div class="fg fg2">
+      <div class="field"><label>活动名称</label><input id="ea-a-name" value="Chief Rate Hunter"></div>
+      <div class="field"><label>奖励内容</label><input id="ea-a-prize" value="$15 gift card"></div>
+      <div class="field"><label>活动开始时间</label><input type="datetime-local" id="ea-a-start"></div>
+      <div class="field"><label>活动截止时间</label><input type="datetime-local" id="ea-a-end"></div>
+      <div class="field"><label>参与步骤</label><textarea id="ea-a-steps">1. Open CardRadar App
+2. Find highest rate for any gift card
+3. Screenshot & post on X with #ChiefRateHunter</textarea></div>
+      <div class="field"><label>附加说明</label><input id="ea-a-extra" placeholder="e.g. First participant gets $10 surprise"></div>
+    </div>
+  </div>
+  <div class="dform" id="ea-feature">
+    <div class="fg fg2">
+      <div class="field"><label>新功能名称</label><input id="ea-f-name" value="Community Reports"></div>
+      <div class="field"><label>上线时间</label><input type="date" id="ea-f-date"></div>
+      <div class="field"><label>核心价值</label><textarea id="ea-f-value">Instantly report suspicious platforms and payment delays — protect every trade.</textarea></div>
+      <div class="field"><label>CTA 引导</label><input id="ea-f-cta" value="Explore Community Reports"></div>
+    </div>
+  </div>
+  <div class="dform" id="ea-monthly">
+    <div class="fg fg2">
+      <div class="field"><label>统计月份</label><input id="ea-m-month" value="May 2026"></div>
+      <div class="field"><label>比价次数</label><input id="ea-m-count" value="12 comparisons"></div>
+      <div class="field"><label>最高成交汇率</label><input id="ea-m-best" value="₦1,089"></div>
+      <div class="field"><label>比市场平均多赚</label><input id="ea-m-extra" value="₦3,200 extra"></div>
+      <div class="field"><label>最常查询卡种</label><input id="ea-m-card" value="Steam USD"></div>
+    </div>
+  </div>
+  <div class="dform" id="ea-winner">
+    <div class="fg fg2">
+      <div class="field"><label>活动名称</label><input id="ea-w-act" value="Chief Rate Hunter June"></div>
+      <div class="field"><label>奖励金额</label><input id="ea-w-prize" value="$15 gift card"></div>
+      <div class="field"><label>奖励发放方式</label><input id="ea-w-how" value="sent to your registered email within 48 hours"></div>
+      <div class="field"><label>下期活动预告</label><input id="ea-w-next" placeholder="e.g. Chief Rate Hunter 2.0 coming July"></div>
+    </div>
+  </div>
+  <div class="dform" id="ea-survey">
+    <div class="fg fg2">
+      <div class="field"><label>调研主题</label><input id="ea-s-topic" value="What features matter most to you on CardRadar"></div>
+      <div class="field"><label>完成时长</label><input id="ea-s-time" value="3 minutes"></div>
+      <div class="field"><label>调研奖励</label><input id="ea-s-prize" value="10 winners each get a $10 gift card"></div>
+      <div class="field"><label>截止日期</label><input type="date" id="ea-s-dead"></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genEDM('active')"><i class="ti ti-bolt"></i> 生成邮件</button><button class="btn-g" onclick="clearOut('edm-active')">清除</button></div>
+  <div class="spin" id="spin-edm-active">正在生成...</div>
+  <div class="out" id="out-edm-active"></div>
+</div>
+
+<!-- EDM RECALL -->
+<div class="page" id="page-edm-recall">
+  <div class="ph"><div class="pt">召回唤醒系列邮件</div><div class="ps">30 / 60 / 90 天分阶段唤醒策略</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'er')" data-t="r30"><i class="ti ti-eye"></i><div class="tc-n">30天温和召回</div><div class="tc-d">展示错过的汇率</div></div>
+    <div class="tc" onclick="selType(this,'er')" data-t="r60"><i class="ti ti-flame"></i><div class="tc-n">60天强力唤醒</div><div class="tc-d">附专属奖励</div></div>
+    <div class="tc" onclick="selType(this,'er')" data-t="r90"><i class="ti ti-heart"></i><div class="tc-n">90天最终挽留</div><div class="tc-d">情感连接最后一封</div></div>
+    <div class="tc" onclick="selType(this,'er')" data-t="exit"><i class="ti ti-file-description"></i><div class="tc-n">流失问卷</div><div class="tc-d">3题极短问卷</div></div>
+  </div>
+  <div class="dform active" id="er-r30">
+    <div class="fg fg2">
+      <div class="field"><label>上次活跃日期</label><input type="date" id="er-30-last"></div>
+      <div class="field"><label>期间最高汇率（错过的）</label><input id="er-30-rate" value="₦1,089 Steam"></div>
+      <div class="field"><label>错过多赚金额估算</label><input id="er-30-miss" value="₦3,200 extra per trade"></div>
+      <div class="field"><label>回来的理由</label><input id="er-30-reason" value="Chief Rate Hunter Challenge is live"></div>
+    </div>
+  </div>
+  <div class="dform" id="er-r60">
+    <div class="fg fg2">
+      <div class="field"><label>上次活跃日期</label><input type="date" id="er-60-last"></div>
+      <div class="field"><label>专属召回激励</label><input id="er-60-bonus" value="Compare once this week — unlock 50 Zaps"></div>
+      <div class="field"><label>激励有效期</label><input type="date" id="er-60-exp"></div>
+      <div class="field"><label>平台新功能亮点</label><input id="er-60-new" value="New Risk Reports board to protect every trade"></div>
+    </div>
+  </div>
+  <div class="dform" id="er-r90">
+    <div class="fg fg2">
+      <div class="field"><label>上次活跃日期</label><input type="date" id="er-90-last"></div>
+      <div class="field"><label>情感连接点</label><input id="er-90-hook" value="You were one of our earliest traders"></div>
+      <div class="field"><label>最后激励（可选）</label><input id="er-90-bonus" placeholder="e.g. 最后一次专属奖励"></div>
+    </div>
+  </div>
+  <div class="dform" id="er-exit">
+    <div class="fg fg1">
+      <div class="field"><label>可能离开原因选项（逗号分隔）</label><textarea id="er-e-opts">Rates weren't high enough, Couldn't find my card type, Didn't trust the platforms listed, App was too complicated, Found a better alternative, Just forgot about it</textarea></div>
+      <div class="field"><label>问卷激励（如有）</label><input id="er-e-bonus" placeholder="e.g. Complete for a chance to win $5"></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genEDM('recall')"><i class="ti ti-bolt"></i> 生成邮件</button><button class="btn-g" onclick="clearOut('edm-recall')">清除</button></div>
+  <div class="spin" id="spin-edm-recall">正在生成...</div>
+  <div class="out" id="out-edm-recall"></div>
+</div>
+
+<!-- EDM GENERAL -->
+<div class="page" id="page-edm-general">
+  <div class="ph"><div class="pt">通用场景系列邮件</div><div class="ps">社区推送、安全提醒、邀请好友、重要公告</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'eg')" data-t="digest"><i class="ti ti-star"></i><div class="tc-n">社区精华推送</div><div class="tc-d">本周论坛热帖摘要</div></div>
+    <div class="tc" onclick="selType(this,'eg')" data-t="security"><i class="ti ti-lock"></i><div class="tc-n">安全提醒</div><div class="tc-d">账户安全/防骗</div></div>
+    <div class="tc" onclick="selType(this,'eg')" data-t="referral"><i class="ti ti-users"></i><div class="tc-n">邀请好友</div><div class="tc-d">推荐计划激活</div></div>
+    <div class="tc" onclick="selType(this,'eg')" data-t="announce"><i class="ti ti-speakerphone"></i><div class="tc-n">重要公告</div><div class="tc-d">规则变更/系统维护</div></div>
+  </div>
+  <div class="dform active" id="eg-digest">
+    <div class="fg fg2">
+      <div class="field"><label>本周最热帖</label><input id="eg-d-top1" value="Steam rate breaks ₦1,100 — Troveloop leads"></div>
+      <div class="field"><label>第二热帖</label><input id="eg-d-top2" placeholder="e.g. Platform X 延迟到账举报"></div>
+      <div class="field"><label>本周活跃用户（可选）</label><input id="eg-d-user" placeholder="e.g. nvov, Kenneth"></div>
+      <div class="field"><label>社区奖励提醒</label><input id="eg-d-reward" value="Top 5 most active users this month win $10 each"></div>
+    </div>
+  </div>
+  <div class="dform" id="eg-security">
+    <div class="fg fg2">
+      <div class="field"><label>安全事件类型</label><select id="eg-s-type"><option>账户异常登录提醒</option><option>平台诈骗预警</option><option>防骗安全提示</option><option>KYC 更新通知</option></select></div>
+      <div class="field"><label>涉及平台（如有）</label><input id="eg-s-plat" placeholder="e.g. Unknown Platform X"></div>
+      <div class="field"><label>核心安全建议</label><textarea id="eg-s-tips">Never share your OTP with anyone. Only trade on platforms listed on CardRadar.</textarea></div>
+    </div>
+  </div>
+  <div class="dform" id="eg-referral">
+    <div class="fg fg2">
+      <div class="field"><label>推荐奖励（推荐人）</label><input id="eg-r-mine" value="₦1,000 per successful referral"></div>
+      <div class="field"><label>推荐奖励（被推荐人）</label><input id="eg-r-friend" value="50 Zaps on first comparison"></div>
+      <div class="field"><label>达成条件</label><input id="eg-r-cond" value="Friend completes $100 in trades within 30 days"></div>
+    </div>
+  </div>
+  <div class="dform" id="eg-announce">
+    <div class="fg fg2">
+      <div class="field"><label>公告标题</label><input id="eg-a-title" placeholder="e.g. CardRadar 平台规则更新"></div>
+      <div class="field"><label>生效时间</label><input type="datetime-local" id="eg-a-time"></div>
+      <div class="field"><label>变更内容</label><textarea id="eg-a-body" placeholder="具体变更内容..."></textarea></div>
+      <div class="field"><label>用户需要的行动</label><input id="eg-a-action" placeholder="e.g. 无需操作，自动生效"></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genEDM('general')"><i class="ti ti-bolt"></i> 生成邮件</button><button class="btn-g" onclick="clearOut('edm-general')">清除</button></div>
+  <div class="spin" id="spin-edm-general">正在生成...</div>
+  <div class="out" id="out-edm-general"></div>
+</div>
+
+<!-- FORUM OFFICIAL -->
+<div class="page" id="page-forum-official">
+  <div class="ph"><div class="pt">CardRadar Official 帖文</div><div class="ps">获奖公告、活动发布、奖池公告、调研、数据报告、功能上新</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'fo')" data-t="winner"><i class="ti ti-trophy"></i><div class="tc-n">获奖公告</div><div class="tc-d">公布月度/活动获奖用户</div></div>
+    <div class="tc" onclick="selType(this,'fo')" data-t="launch"><i class="ti ti-rocket"></i><div class="tc-n">活动发布</div><div class="tc-d">新活动正式上线</div></div>
+    <div class="tc" onclick="selType(this,'fo')" data-t="pool"><i class="ti ti-currency-dollar"></i><div class="tc-n">奖池公告</div><div class="tc-d">社区奖励机制说明</div></div>
+    <div class="tc" onclick="selType(this,'fo')" data-t="survey"><i class="ti ti-clipboard-list"></i><div class="tc-n">调研发布</div><div class="tc-d">邀请社区参与问卷</div></div>
+    <div class="tc" onclick="selType(this,'fo')" data-t="report"><i class="ti ti-chart-bar"></i><div class="tc-n">数据报告</div><div class="tc-d">周/月平台数据公开</div></div>
+    <div class="tc" onclick="selType(this,'fo')" data-t="feature"><i class="ti ti-sparkles"></i><div class="tc-n">功能上新</div><div class="tc-d">新功能/板块上线</div></div>
+  </div>
+  <div class="dform active" id="fo-winner">
+    <div class="fg fg2">
+      <div class="field"><label>月份/活动名称</label><input id="fo-w-month" value="June"></div>
+      <div class="field"><label>奖励内容</label><input id="fo-w-prize" value="$10 gift card"></div>
+      <div class="field"><label>获奖用户1（名 — 次数）</label><input id="fo-w-u1" value="nvov — 15次"></div>
+      <div class="field"><label>获奖用户2</label><input id="fo-w-u2" value="Kenneth — 13次"></div>
+      <div class="field"><label>获奖用户3</label><input id="fo-w-u3" value="CR_00000001E — 10次"></div>
+      <div class="field"><label>是否补齐至5名</label><select id="fo-w-fake"><option value="yes">是，生成2个虚拟用户</option><option value="no">否</option></select></div>
+      <div class="field"><label>奖池总额</label><input id="fo-w-pool" value="₦10,000,000"></div>
+      <div class="field"><label>领奖方式</label><input id="fo-w-claim" value="Our team will contact winners via registered email"></div>
+    </div>
+  </div>
+  <div class="dform" id="fo-launch">
+    <div class="fg fg2">
+      <div class="field"><label>活动名称</label><input id="fo-l-name" value="Chief Rate Hunter 1.0"></div>
+      <div class="field"><label>活动开始时间</label><input type="datetime-local" id="fo-l-start"></div>
+      <div class="field"><label>活动截止时间</label><input type="datetime-local" id="fo-l-end"></div>
+      <div class="field"><label>主要奖励</label><input id="fo-l-prize" value="$15 gift card for top rate"></div>
+      <div class="field"><label>参与方式</label><textarea id="fo-l-how">1. Open CardRadar App
+2. Find highest rate for any gift card
+3. Screenshot & post on X with #ChiefRateHunter #CardRadar</textarea></div>
+      <div class="field"><label>隐藏惊喜（不对外公布）</label><input id="fo-l-secret" placeholder="e.g. First participant gets $10 instantly"></div>
+    </div>
+  </div>
+  <div class="dform" id="fo-pool">
+    <div class="fg fg2">
+      <div class="field"><label>总奖池金额</label><input id="fo-p-total" value="₦10,000,000"></div>
+      <div class="field"><label>月度活跃前5奖励</label><input id="fo-p-top5" value="$10 gift card each"></div>
+      <div class="field"><label>高质量回答奖励范围</label><input id="fo-p-quality" value="$10–$50 gift card or Zaps credits"></div>
+      <div class="field"><label>开奖/公告方式</label><input id="fo-p-announce" value="Announced monthly under this post"></div>
+    </div>
+  </div>
+  <div class="dform" id="fo-survey">
+    <div class="fg fg2">
+      <div class="field"><label>调研主题</label><input id="fo-s-topic" value="What do you want CardRadar to build next?"></div>
+      <div class="field"><label>完成时长</label><input id="fo-s-dur" value="3 minutes"></div>
+      <div class="field"><label>奖励</label><input id="fo-s-prize" value="10 winners each receive a $10 gift card"></div>
+      <div class="field"><label>截止日期</label><input type="date" id="fo-s-dead"></div>
+    </div>
+  </div>
+  <div class="dform" id="fo-report">
+    <div class="fg fg2">
+      <div class="field"><label>报告周期</label><input id="fo-r-period" value="Week of June 10–16, 2026"></div>
+      <div class="field"><label>核心数据</label><input id="fo-r-data" placeholder="e.g. 4,772 downloads, 2,078 new users"></div>
+      <div class="field"><label>本周最高汇率记录</label><input id="fo-r-rate" placeholder="e.g. ₦1,089 Steam via Troveloop"></div>
+      <div class="field"><label>社区互动亮点</label><input id="fo-r-comm" placeholder="e.g. 48 new Risk Reports, 127 posts"></div>
+    </div>
+  </div>
+  <div class="dform" id="fo-feature">
+    <div class="fg fg2">
+      <div class="field"><label>功能名称</label><input id="fo-f-name" value="Risk Reports — Community Safety Board"></div>
+      <div class="field"><label>上线时间</label><input type="date" id="fo-f-date"></div>
+      <div class="field"><label>解决的痛点</label><textarea id="fo-f-pain">Users had no place to report delayed payments or suspicious platforms — now they can.</textarea></div>
+      <div class="field"><label>如何使用</label><input id="fo-f-how" placeholder="e.g. Community → Risk Reports → Submit Report"></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genForum('official')"><i class="ti ti-bolt"></i> 生成帖文</button><button class="btn-g" onclick="clearOut('forum-official')">清除</button></div>
+  <div class="spin" id="spin-forum-official">正在生成...</div>
+  <div class="out" id="out-forum-official"></div>
+</div>
+
+<!-- FORUM RISK -->
+<div class="page" id="page-forum-risk">
+  <div class="ph"><div class="pt">Risk Reports 板块帖文</div><div class="ps">风险预警 / 延迟公告 / 防骗科普 / 举报引导</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'fr')" data-t="scam"><i class="ti ti-alert-triangle"></i><div class="tc-n">诈骗预警</div><div class="tc-d">可疑平台公开警告</div></div>
+    <div class="tc" onclick="selType(this,'fr')" data-t="delay"><i class="ti ti-clock"></i><div class="tc-n">延迟到账公告</div><div class="tc-d">付款延迟问题跟踪</div></div>
+    <div class="tc" onclick="selType(this,'fr')" data-t="tips"><i class="ti ti-shield"></i><div class="tc-n">安全防骗贴</div><div class="tc-d">交易安全科普</div></div>
+    <div class="tc" onclick="selType(this,'fr')" data-t="guide"><i class="ti ti-file-description"></i><div class="tc-n">举报引导帖</div><div class="tc-d">规范举报格式</div></div>
+  </div>
+  <div class="dform active" id="fr-scam">
+    <div class="fg fg2">
+      <div class="field"><label>涉及平台</label><input id="fr-s-plat" placeholder="e.g. Unknown Platform X"></div>
+      <div class="field"><label>问题类型</label><select id="fr-s-type"><option>付款不到账</option><option>账号被封</option><option>汇率与实际不符</option><option>其他可疑行为</option></select></div>
+      <div class="field"><label>问题描述</label><textarea id="fr-s-desc" placeholder="e.g. 多名用户反映完成交易后超过72小时仍未收款..."></textarea></div>
+      <div class="field"><label>核实状态</label><select id="fr-s-status"><option>Unverified — Community report</option><option>Under investigation by CardRadar</option><option>Verified — Avoid this platform</option></select></div>
+      <div class="field"><label>证据类型</label><input id="fr-s-evi" placeholder="e.g. Screenshot, Chat record"></div>
+    </div>
+  </div>
+  <div class="dform" id="fr-delay">
+    <div class="fg fg2">
+      <div class="field"><label>涉及平台</label><input id="fr-d-plat" placeholder="e.g. Platform A"></div>
+      <div class="field"><label>延迟时长</label><input id="fr-d-dur" placeholder="e.g. 超过48小时"></div>
+      <div class="field"><label>影响用户数量</label><input id="fr-d-users" placeholder="e.g. 多名用户反映"></div>
+      <div class="field"><label>平台官方回应</label><textarea id="fr-d-resp" placeholder="e.g. 平台称系统升级..."></textarea></div>
+      <div class="field"><label>CardRadar 建议</label><input id="fr-d-advice" placeholder="e.g. 暂时避开该平台"></div>
+    </div>
+  </div>
+  <div class="dform" id="fr-tips">
+    <div class="fg fg2">
+      <div class="field"><label>防骗主题</label><input id="fr-t-topic" value="How to spot a fake gift card platform"></div>
+      <div class="field"><label>核心建议（逗号分隔）</label><textarea id="fr-t-tips">Only use platforms listed on CardRadar, Never share your OTP or password, Check payout time before trading, Screenshot all transactions, Report suspicious activity immediately</textarea></div>
+    </div>
+  </div>
+  <div class="dform" id="fr-guide">
+    <div class="fg fg1">
+      <div class="field"><label>举报引导补充说明</label><textarea id="fr-g-note">Include screenshots and transaction IDs in your report. CardRadar team reviews within 24 hours.</textarea></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genForum('risk')"><i class="ti ti-bolt"></i> 生成帖文</button><button class="btn-g" onclick="clearOut('forum-risk')">清除</button></div>
+  <div class="spin" id="spin-forum-risk">正在生成...</div>
+  <div class="out" id="out-forum-risk"></div>
+</div>
+
+<!-- FORUM RATE -->
+<div class="page" id="page-forum-rate">
+  <div class="ph"><div class="pt">Apple / Google Play 板块帖文</div><div class="ps">今日汇率播报 / 晒单邀请 / 卡种讨论</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'frt')" data-t="daily"><i class="ti ti-trending-up"></i><div class="tc-n">今日汇率播报</div><div class="tc-d">实时最高汇率展示</div></div>
+    <div class="tc" onclick="selType(this,'frt')" data-t="callout"><i class="ti ti-camera"></i><div class="tc-n">晒单邀请帖</div><div class="tc-d">引导用户分享成交</div></div>
+    <div class="tc" onclick="selType(this,'frt')" data-t="discuss"><i class="ti ti-message-dots"></i><div class="tc-n">卡种专题讨论</div><div class="tc-d">特定卡种经验交流</div></div>
+  </div>
+  <div class="dform active" id="frt-daily">
+    <div class="fg fg2">
+      <div class="field"><label>卡种</label><select id="frt-d-card"><option>Apple / iTunes</option><option>Google Play</option><option>Steam</option><option>Amazon</option></select></div>
+      <div class="field"><label>货币/面值</label><input id="frt-d-cur" value="USD-USA $100"></div>
+      <div class="field"><label>数据时间</label><input type="datetime-local" id="frt-d-time"></div>
+      <div class="field"><label>最高汇率 — 平台</label><input id="frt-d-p1" value="₦1,089 — Troveloop (best)"></div>
+      <div class="field"><label>第二汇率 — 平台</label><input id="frt-d-p2" placeholder="e.g. ₦1,050 — Astro Africa"></div>
+      <div class="field"><label>最低汇率 — 平台</label><input id="frt-d-p3" placeholder="e.g. ₦940 — Cardgoal"></div>
+      <div class="field"><label>趋势判断</label><input id="frt-d-trend" placeholder="e.g. Rates trending up, good time to sell"></div>
+    </div>
+  </div>
+  <div class="dform" id="frt-callout">
+    <div class="fg fg2">
+      <div class="field"><label>卡种</label><select id="frt-c-card"><option>Apple / iTunes</option><option>Google Play</option><option>Steam</option><option>Amazon</option></select></div>
+      <div class="field"><label>今日参考最高汇率</label><input id="frt-c-rate" value="₦1,089 via Troveloop"></div>
+      <div class="field"><label>联动活动</label><input id="frt-c-act" placeholder="e.g. Best Rate Wins!"></div>
+      <div class="field"><label>互动问题</label><input id="frt-c-q" value="What's the highest rate you got today?"></div>
+    </div>
+  </div>
+  <div class="dform" id="frt-discuss">
+    <div class="fg fg2">
+      <div class="field"><label>卡种</label><select id="frt-dis-card"><option>Apple / iTunes</option><option>Google Play</option><option>Steam</option><option>Amazon</option></select></div>
+      <div class="field"><label>讨论主题</label><input id="frt-dis-topic" value="Which platform is most consistent for iTunes USD right now?"></div>
+      <div class="field"><label>背景说明</label><textarea id="frt-dis-bg" placeholder="e.g. 近期 Troveloop 连续3天领跑..."></textarea></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genForum('rate')"><i class="ti ti-bolt"></i> 生成帖文</button><button class="btn-g" onclick="clearOut('forum-rate')">清除</button></div>
+  <div class="spin" id="spin-forum-rate">正在生成...</div>
+  <div class="out" id="out-forum-rate"></div>
+</div>
+
+<!-- FORUM MARKET -->
+<div class="page" id="page-forum-market">
+  <div class="ph"><div class="pt">Market Intel 板块帖文</div><div class="ps">汇率趋势 / 规则变动 / 平台评价 / 周度汇总</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'fm')" data-t="trend"><i class="ti ti-chart-line"></i><div class="tc-n">汇率趋势分析</div><div class="tc-d">本周/月走势解读</div></div>
+    <div class="tc" onclick="selType(this,'fm')" data-t="rule"><i class="ti ti-file-alert"></i><div class="tc-n">规则变动提醒</div><div class="tc-d">平台政策更新</div></div>
+    <div class="tc" onclick="selType(this,'fm')" data-t="review"><i class="ti ti-star"></i><div class="tc-n">平台评价征集</div><div class="tc-d">引导用户分享体验</div></div>
+    <div class="tc" onclick="selType(this,'fm')" data-t="weekly"><i class="ti ti-clipboard"></i><div class="tc-n">周度市场汇总</div><div class="tc-d">本周情报摘要</div></div>
+  </div>
+  <div class="dform active" id="fm-trend">
+    <div class="fg fg2">
+      <div class="field"><label>分析周期</label><input id="fm-t-period" value="June 10–16, 2026"></div>
+      <div class="field"><label>趋势描述</label><input id="fm-t-trend" placeholder="e.g. Steam USD 整体上涨约3%"></div>
+      <div class="field"><label>表现最好的平台</label><input id="fm-t-top" value="Troveloop — 5 days at top"></div>
+      <div class="field"><label>操作建议</label><input id="fm-t-advice" value="Steam trending up — good time to sell"></div>
+    </div>
+  </div>
+  <div class="dform" id="fm-rule">
+    <div class="fg fg2">
+      <div class="field"><label>涉及平台</label><input id="fm-r-plat" placeholder="e.g. Cardtonic"></div>
+      <div class="field"><label>变更生效日期</label><input type="date" id="fm-r-date"></div>
+      <div class="field"><label>变更内容</label><textarea id="fm-r-change" placeholder="e.g. Cardtonic 将最低面值从 $10 提升至 $25..."></textarea></div>
+      <div class="field"><label>对用户影响</label><input id="fm-r-impact" placeholder="e.g. $10/$15 面值用户需换用其他平台"></div>
+    </div>
+  </div>
+  <div class="dform" id="fm-review">
+    <div class="fg fg2">
+      <div class="field"><label>目标平台</label><input id="fm-rv-plat" placeholder="e.g. Troveloop, Catrove, Astro Africa"></div>
+      <div class="field"><label>评价维度</label><input id="fm-rv-dims" value="Rate competitiveness, payout speed, customer support"></div>
+      <div class="field"><label>互动问题</label><input id="fm-rv-q" value="Which platform gave you the best experience this month?"></div>
+    </div>
+  </div>
+  <div class="dform" id="fm-weekly">
+    <div class="fg fg2">
+      <div class="field"><label>统计周期</label><input id="fm-w-period" value="Week of June 10–16"></div>
+      <div class="field"><label>本周最高汇率</label><input id="fm-w-top" placeholder="e.g. ₦1,089 Steam via Troveloop on June 12"></div>
+      <div class="field"><label>本周平台动态</label><textarea id="fm-w-news" placeholder="e.g. Catrove 推出新人奖励..."></textarea></div>
+      <div class="field"><label>下周预测/建议</label><input id="fm-w-next" placeholder="e.g. 汇率波动加剧，建议实时关注"></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genForum('market')"><i class="ti ti-bolt"></i> 生成帖文</button><button class="btn-g" onclick="clearOut('forum-market')">清除</button></div>
+  <div class="spin" id="spin-forum-market">正在生成...</div>
+  <div class="out" id="out-forum-market"></div>
+</div>
+
+<!-- FORUM COMMUNITY -->
+<div class="page" id="page-forum-community">
+  <div class="ph"><div class="pt">社区互动帖文</div><div class="ps">板块置顶 / 话题讨论 / 新人欢迎 / 周精华</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'fc')" data-t="intro"><i class="ti ti-pin"></i><div class="tc-n">板块置顶引导帖</div><div class="tc-d">各板块欢迎+规则</div></div>
+    <div class="tc" onclick="selType(this,'fc')" data-t="topic"><i class="ti ti-bulb"></i><div class="tc-n">话题引导帖</div><div class="tc-d">抛出问题引发讨论</div></div>
+    <div class="tc" onclick="selType(this,'fc')" data-t="newbie"><i class="ti ti-hand-stop"></i><div class="tc-n">新人欢迎帖</div><div class="tc-d">New Here 板块引导</div></div>
+    <div class="tc" onclick="selType(this,'fc')" data-t="digest"><i class="ti ti-sparkles"></i><div class="tc-n">周精华汇总</div><div class="tc-d">本周社区优质内容</div></div>
+  </div>
+  <div class="dform active" id="fc-intro">
+    <div class="fg fg2">
+      <div class="field"><label>目标板块</label><select id="fc-i-board"><option>Risk Reports</option><option>Apple & iTunes</option><option>Google Play</option><option>Market Intel</option><option>Best Rate Wins</option><option>New Here</option><option>Market Talk</option><option>CardRadar Official</option></select></div>
+      <div class="field"><label>板块核心用途</label><input id="fc-i-purpose" value="Share rates, compare platforms, find the best deal"></div>
+      <div class="field"><label>欢迎的内容类型</label><input id="fc-i-welcome" value="Rate screenshots, platform reviews, trade results"></div>
+      <div class="field"><label>社区行为规范</label><input id="fc-i-rules" value="No spam, no promo posts, screenshots required for reports"></div>
+    </div>
+  </div>
+  <div class="dform" id="fc-topic">
+    <div class="fg fg2">
+      <div class="field"><label>话题问题</label><input id="fc-t-q" value="Which platform gave you the best rate this week?"></div>
+      <div class="field"><label>背景说明（可选）</label><textarea id="fc-t-bg" placeholder="e.g. 本周 Steam 汇率整体上涨..."></textarea></div>
+      <div class="field"><label>语气风格</label><select id="fc-t-tone"><option value="casual">轻松社区感</option><option value="energetic">活力炸裂</option><option value="analytical">分析型</option></select></div>
+    </div>
+  </div>
+  <div class="dform" id="fc-newbie">
+    <div class="fg fg2">
+      <div class="field"><label>当前活动（新人福利）</label><input id="fc-n-act" value="Chief Rate Hunter — win up to $15"></div>
+      <div class="field"><label>推荐新人第一步</label><input id="fc-n-first" value="Start by comparing Steam rates in the Rate Comparison section"></div>
+      <div class="field"><label>社区规则提示</label><input id="fc-n-rules" value="Ask anything — this community is here to help"></div>
+    </div>
+  </div>
+  <div class="dform" id="fc-digest">
+    <div class="fg fg2">
+      <div class="field"><label>统计周期</label><input id="fc-d-period" value="June 10–16"></div>
+      <div class="field"><label>本周最热帖 Top 1</label><input id="fc-d-top1" placeholder="e.g. Steam 汇率分析帖 — 48 replies"></div>
+      <div class="field"><label>本周最热帖 Top 2</label><input id="fc-d-top2" placeholder="e.g. Platform X 延迟到账举报 — 32 replies"></div>
+      <div class="field"><label>本周最活跃用户</label><input id="fc-d-users" placeholder="e.g. nvov, Kenneth, GiftHunter_NG"></div>
+      <div class="field"><label>下周预告</label><input id="fc-d-next" placeholder="e.g. 本周五开奖 Chief Rate Hunter"></div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="genForum('community')"><i class="ti ti-bolt"></i> 生成帖文</button><button class="btn-g" onclick="clearOut('forum-community')">清除</button></div>
+  <div class="spin" id="spin-forum-community">正在生成...</div>
+  <div class="out" id="out-forum-community"></div>
+</div>
+
+<!-- SOCIAL X -->
+<div class="page" id="page-social-x">
+  <div class="ph"><div class="pt">X (Twitter) 文案生成</div><div class="ps">280字符内，多种场景，含 hashtag 策略</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'sx')" data-t="activity"><i class="ti ti-target"></i><div class="tc-n">活动宣传</div><div class="tc-d">预热/进行中/倒计时</div></div>
+    <div class="tc" onclick="selType(this,'sx')" data-t="rate"><i class="ti ti-trending-up"></i><div class="tc-n">汇率播报</div><div class="tc-d">今日最高汇率</div></div>
+    <div class="tc" onclick="selType(this,'sx')" data-t="winner"><i class="ti ti-trophy"></i><div class="tc-n">获奖公告</div><div class="tc-d">公布获奖用户</div></div>
+    <div class="tc" onclick="selType(this,'sx')" data-t="engage"><i class="ti ti-message-circle"></i><div class="tc-n">互动提问</div><div class="tc-d">引发用户回复</div></div>
+    <div class="tc" onclick="selType(this,'sx')" data-t="scam"><i class="ti ti-alert-triangle"></i><div class="tc-n">风险预警</div><div class="tc-d">可疑平台提醒</div></div>
+    <div class="tc" onclick="selType(this,'sx')" data-t="highlight"><i class="ti ti-star"></i><div class="tc-n">社区精华</div><div class="tc-d">转发论坛优质内容</div></div>
+  </div>
+  <div class="fg fg2">
+    <div class="field"><label>核心信息</label><input id="sx-info" value="Chief Rate Hunter Challenge — $15 prize, ends June 9"></div>
+    <div class="field"><label>语气</label><select id="sx-tone"><option value="energetic">高能炸裂</option><option value="casual">口语化</option><option value="urgent">紧迫感</option><option value="trust">信任感</option></select></div>
+  </div>
+  <div class="divider">Hashtag 策略</div>
+  <div class="tag-group"><div class="tgl">品牌标签</div><div class="tags-wrap"><span class="tag on" onclick="this.classList.toggle('on')">#CardRadar</span><span class="tag on" onclick="this.classList.toggle('on')">#ChiefRateHunter</span><span class="tag on" onclick="this.classList.toggle('on')">#BestRateWins</span></div></div>
+  <div class="tag-group"><div class="tgl">品类标签</div><div class="tags-wrap"><span class="tag" onclick="this.classList.toggle('on')">#GiftCardTrading</span><span class="tag" onclick="this.classList.toggle('on')">#iTunesCard</span><span class="tag" onclick="this.classList.toggle('on')">#SteamCard</span><span class="tag" onclick="this.classList.toggle('on')">#AmazonCard</span><span class="tag" onclick="this.classList.toggle('on')">#GooglePlayCard</span></div></div>
+  <div class="tag-group"><div class="tgl">地域标签</div><div class="tags-wrap"><span class="tag" onclick="this.classList.toggle('on')">#Nigeria</span><span class="tag" onclick="this.classList.toggle('on')">#Naija</span><span class="tag" onclick="this.classList.toggle('on')">#Ghana</span><span class="tag" onclick="this.classList.toggle('on')">#Africa</span><span class="tag" onclick="this.classList.toggle('on')">#GiftCardNaija</span></div></div>
+  <div class="tag-group"><div class="tgl">情绪/场景标签</div><div class="tags-wrap"><span class="tag" onclick="this.classList.toggle('on')">#MakeMoneyOnline</span><span class="tag" onclick="this.classList.toggle('on')">#TradeSmarter</span><span class="tag" onclick="this.classList.toggle('on')">#BestRate</span><span class="tag" onclick="this.classList.toggle('on')">#CashOut</span><span class="tag" onclick="this.classList.toggle('on')">#GiftCardRate</span></div></div>
+  <div class="btn-row"><button class="btn-p" onclick="genSocial('x')"><i class="ti ti-bolt"></i> 生成文案</button><button class="btn-g" onclick="clearOut('social-x')">清除</button></div>
+  <div class="spin" id="spin-social-x">正在生成...</div>
+  <div class="out" id="out-social-x"></div>
+</div>
+
+<!-- SOCIAL IG -->
+<div class="page" id="page-social-ig">
+  <div class="ph"><div class="pt">Instagram 文案生成</div><div class="ps">故事感更强，搭配海报，含完整 hashtag</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'sig')" data-t="promo"><i class="ti ti-target"></i><div class="tc-n">活动宣传</div><div class="tc-d">完整活动说明</div></div>
+    <div class="tc" onclick="selType(this,'sig')" data-t="rate"><i class="ti ti-trending-up"></i><div class="tc-n">汇率视觉帖</div><div class="tc-d">汇率数据对比</div></div>
+    <div class="tc" onclick="selType(this,'sig')" data-t="tips"><i class="ti ti-bulb"></i><div class="tc-n">交易技巧帖</div><div class="tc-d">实用干货</div></div>
+    <div class="tc" onclick="selType(this,'sig')" data-t="winner"><i class="ti ti-trophy"></i><div class="tc-n">获奖公告</div><div class="tc-d">IG 风格获奖展示</div></div>
+  </div>
+  <div class="fg fg2">
+    <div class="field"><label>核心信息</label><textarea id="sig-info">Chief Rate Hunter — find the highest rate, win $15. Ends June 9.</textarea></div>
+    <div class="field"><label>语气</label><select id="sig-tone"><option value="storytelling">故事感</option><option value="energetic">高能</option><option value="educational">干货</option></select></div>
+  </div>
+  <div class="divider">Hashtag（IG 建议 15–20 个）</div>
+  <div class="tags-wrap" style="margin-bottom:14px"><span class="tag on" onclick="this.classList.toggle('on')">#CardRadar</span><span class="tag on" onclick="this.classList.toggle('on')">#ChiefRateHunter</span><span class="tag on" onclick="this.classList.toggle('on')">#GiftCardTrading</span><span class="tag on" onclick="this.classList.toggle('on')">#Nigeria</span><span class="tag on" onclick="this.classList.toggle('on')">#Naija</span><span class="tag" onclick="this.classList.toggle('on')">#GiftCard</span><span class="tag" onclick="this.classList.toggle('on')">#MakeMoneyOnline</span><span class="tag" onclick="this.classList.toggle('on')">#iTunesCard</span><span class="tag" onclick="this.classList.toggle('on')">#SteamCard</span><span class="tag" onclick="this.classList.toggle('on')">#TradeSmarter</span><span class="tag" onclick="this.classList.toggle('on')">#GiftCardNaija</span><span class="tag" onclick="this.classList.toggle('on')">#Africa</span><span class="tag" onclick="this.classList.toggle('on')">#BestRate</span><span class="tag" onclick="this.classList.toggle('on')">#NaijaTwitter</span><span class="tag" onclick="this.classList.toggle('on')">#CashOut</span></div>
+  <div class="btn-row"><button class="btn-p" onclick="genSocial('ig')"><i class="ti ti-bolt"></i> 生成文案</button><button class="btn-g" onclick="clearOut('social-ig')">清除</button></div>
+  <div class="spin" id="spin-social-ig">正在生成...</div>
+  <div class="out" id="out-social-ig"></div>
+</div>
+
+<!-- SOCIAL TIKTOK -->
+<div class="page" id="page-social-tiktok">
+  <div class="ph"><div class="pt">TikTok 文案生成</div><div class="ps">视频 caption + 前3秒钩子，配合短视频使用</div></div>
+  <div class="tg">
+    <div class="tc sel" onclick="selType(this,'stk')" data-t="hook"><i class="ti ti-fish-hook"></i><div class="tc-n">视频钩子文案</div><div class="tc-d">前3秒抓住眼球</div></div>
+    <div class="tc" onclick="selType(this,'stk')" data-t="tutorial"><i class="ti ti-device-mobile"></i><div class="tc-n">操作教程文案</div><div class="tc-d">配合演示视频</div></div>
+    <div class="tc" onclick="selType(this,'stk')" data-t="trend"><i class="ti ti-flame"></i><div class="tc-n">蹭热点文案</div><div class="tc-d">借势热点话题</div></div>
+  </div>
+  <div class="fg fg2">
+    <div class="field"><label>视频主题</label><input id="stk-topic" value="How to find the highest gift card rate in 30 seconds"></div>
+    <div class="field"><label>关键数字/亮点</label><input id="stk-hook" value="₦110 difference on every $100 Steam card"></div>
+    <div class="field"><label>目标受众</label><input id="stk-audience" value="Nigerian gift card traders"></div>
+    <div class="field"><label>结尾 CTA</label><input id="stk-cta" value="Link in bio to compare now"></div>
+  </div>
+  <div class="divider">TikTok Hashtag</div>
+  <div class="tags-wrap" style="margin-bottom:14px"><span class="tag on" onclick="this.classList.toggle('on')">#CardRadar</span><span class="tag on" onclick="this.classList.toggle('on')">#GiftCard</span><span class="tag on" onclick="this.classList.toggle('on')">#Nigeria</span><span class="tag on" onclick="this.classList.toggle('on')">#MakeMoneyOnline</span><span class="tag" onclick="this.classList.toggle('on')">#NaijaTikTok</span><span class="tag" onclick="this.classList.toggle('on')">#GiftCardTrading</span><span class="tag" onclick="this.classList.toggle('on')">#fyp</span><span class="tag" onclick="this.classList.toggle('on')">#AfricaTikTok</span><span class="tag" onclick="this.classList.toggle('on')">#MoneyTips</span></div>
+  <div class="btn-row"><button class="btn-p" onclick="genSocial('tiktok')"><i class="ti ti-bolt"></i> 生成文案</button><button class="btn-g" onclick="clearOut('social-tiktok')">清除</button></div>
+  <div class="spin" id="spin-social-tiktok">正在生成...</div>
+  <div class="out" id="out-social-tiktok"></div>
+</div>
+
+<!-- TOOL COMPLIANCE -->
+<div class="page" id="page-tool-compliance">
+  <div class="ph"><div class="pt">合规检测器</div><div class="ps">主题行与正文分开检测，提供详细行为建议，避开高风险词</div></div>
+  <div class="fg fg1" style="margin-bottom:14px">
+    <div class="field"><label>主题行（Subject Line）— 仅用于检测字符长度与标题规范</label><input id="comp-subj" placeholder="e.g. 🎁 Your $10 is waiting — claim it now"></div>
+  </div>
+  <div class="fg fg1" style="margin-bottom:14px">
+    <div class="field"><label>邮件正文（Body）— 用于检测垃圾词、标点、敏感词</label><textarea id="comp-body" style="min-height:120px" placeholder="粘贴邮件正文内容..."></textarea></div>
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="runComp()"><i class="ti ti-shield-check"></i> 立即检测</button><button class="btn-g" onclick="document.getElementById('comp-out').style.display='none'">清除</button></div>
+  <div id="comp-out" style="display:none;margin-top:16px"></div>
+
+  <!-- AVOID WORDS REFERENCE -->
+  <div class="divider" style="margin-top:28px">高风险词参考表</div>
+  <div style="background:#0a1e28;border-radius:10px;padding:16px;border:1px solid rgba(2,255,255,0.08)">
+    <div style="font-size:10px;letter-spacing:2px;color:rgba(255,77,109,0.8);font-weight:600;margin-bottom:10px">🚫 主题行中绝对禁止</div>
+    <div class="word-avoid-grid" style="margin-bottom:14px">
+      <div class="word-chip">Free</div><div class="word-chip">Win</div><div class="word-chip">Guaranteed</div>
+      <div class="word-chip">Act Now</div><div class="word-chip">Click Here</div><div class="word-chip">No Risk</div>
+      <div class="word-chip">Cash Bonus</div><div class="word-chip">Limited Time!!!</div><div class="word-chip">You Won</div>
+      <div class="word-chip">Gift Card</div><div class="word-chip">100% Free</div><div class="word-chip">Earn $$$</div>
+    </div>
+    <div style="font-size:10px;letter-spacing:2px;color:rgba(255,215,0,0.8);font-weight:600;margin-bottom:10px">⚠️ 正文中谨慎使用</div>
+    <div class="word-avoid-grid" style="margin-bottom:14px">
+      <div class="word-chip" style="background:rgba(255,215,0,0.06);border-color:rgba(255,215,0,0.2);color:rgba(255,215,0,0.8)">Winner</div>
+      <div class="word-chip" style="background:rgba(255,215,0,0.06);border-color:rgba(255,215,0,0.2);color:rgba(255,215,0,0.8)">Congratulations</div>
+      <div class="word-chip" style="background:rgba(255,215,0,0.06);border-color:rgba(255,215,0,0.2);color:rgba(255,215,0,0.8)">Urgent</div>
+      <div class="word-chip" style="background:rgba(255,215,0,0.06);border-color:rgba(255,215,0,0.2);color:rgba(255,215,0,0.8)">Exclusive</div>
+      <div class="word-chip" style="background:rgba(255,215,0,0.06);border-color:rgba(255,215,0,0.2);color:rgba(255,215,0,0.8)">Special Offer</div>
+      <div class="word-chip" style="background:rgba(255,215,0,0.06);border-color:rgba(255,215,0,0.2);color:rgba(255,215,0,0.8)">Bonus</div>
+    </div>
+    <div style="font-size:10px;letter-spacing:2px;color:rgba(0,229,160,0.8);font-weight:600;margin-bottom:8px">✅ 推荐替代表达</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.8">
+      "Free" → <span style="color:rgba(0,229,160,0.8)">"No cost" / "On us" / "Complimentary"</span><br>
+      "Win" → <span style="color:rgba(0,229,160,0.8)">"Earn" / "Get rewarded" / "Take home"</span><br>
+      "Click Here" → <span style="color:rgba(0,229,160,0.8)">"Check Today's Best Rate" / "Compare Now"</span><br>
+      "Gift Card" (主题行) → <span style="color:rgba(0,229,160,0.8)">"your reward" / "your prize" / "$15 for you"</span><br>
+      "Limited Time!!!" → <span style="color:rgba(0,229,160,0.8)">"Ends June 9" / "Closes this Friday"</span>
+    </div>
+  </div>
+
+  <!-- BEST PRACTICE TIPS -->
+  <div class="divider" style="margin-top:20px">发送行为规范</div>
+  <div class="comp-tip-box">
+    <div class="comp-tip-title">📋 Mailchimp / 主流 ESP 合规要点</div>
+    <div class="comp-tip-item">同一用户每周营销邮件不超过 2 封，发送间隔至少 3 天</div>
+    <div class="comp-tip-item">主题行控制在 40 字符以内，移动端不被截断</div>
+    <div class="comp-tip-item">图文比例：文字占比 ≥ 60%，不可发纯图片邮件</div>
+    <div class="comp-tip-item">每封邮件 CTA 按钮只放 1 个，链接总数不超过 3 个</div>
+    <div class="comp-tip-item">底部必须包含退订链接 + 实体地址（CAN-SPAM 法规要求）</div>
+    <div class="comp-tip-item">硬退弹（Hard Bounce）立即清除，保持域名信誉评分</div>
+    <div class="comp-tip-item">投诉率目标控制在 0.1% 以下（Google/Yahoo 强制阈值）</div>
+    <div class="comp-tip-item">发件人邮箱使用品牌域名（如 hello@cardradar.com），禁用 Gmail/Yahoo</div>
+    <div class="comp-tip-item">发送前务必在手机端预览，超过 70% 用户用手机开信</div>
+  </div>
+</div>
+
+<!-- TOOL AB -->
+<div class="page" id="page-tool-ab">
+  <div class="ph"><div class="pt">A/B 测试生成器</div><div class="ps">生成6种不同钩子类型的完整邮件版本，每版包含主题行、预览文字、正文和 CTA</div></div>
+  <div class="fg fg2">
+    <div class="field"><label>邮件核心目的</label><input id="ab-purpose" value="引导用户参与 Chief Rate Hunter 赢取 $15 礼品卡"></div>
+    <div class="field"><label>关键信息（奖励/数据/截止日期）</label><input id="ab-info" value="$15 gift card prize, ends June 9 at 12:00 AM"></div>
+    <div class="field"><label>生成版本数量</label><select id="ab-count"><option value="3">3 个版本</option><option value="6" selected>6 个版本（全钩子类型）</option></select></div>
+    <div class="field"><label>目标用户群体</label><select id="ab-audience"><option value="new">新用户（注册7天内）</option><option value="active" selected>活跃用户</option><option value="recall">沉睡用户（30天未登录）</option></select></div>
+  </div>
+
+  <div style="background:#0a1e28;border-radius:10px;padding:14px 16px;border:1px solid rgba(2,255,255,0.08);margin-bottom:14px">
+    <div style="font-size:10px;letter-spacing:2px;color:#02FFFF;font-weight:600;margin-bottom:10px">将生成的钩子类型</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div style="padding:8px 10px;border-radius:7px;border:1px solid rgba(255,215,0,0.2);background:rgba(255,215,0,0.05)"><div style="font-size:11px;font-weight:700;color:#FFD700;margin-bottom:3px">🎁 奖励型</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">直接展示奖励利益</div></div>
+      <div style="padding:8px 10px;border-radius:7px;border:1px solid rgba(255,100,100,0.2);background:rgba(255,100,100,0.05)"><div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:3px">😤 后悔/FOMO 型</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">你已经错过了...</div></div>
+      <div style="padding:8px 10px;border-radius:7px;border:1px solid rgba(2,255,255,0.2);background:rgba(2,255,255,0.05)"><div style="font-size:11px;font-weight:700;color:#02FFFF;margin-bottom:3px">🧠 聪明人型</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">智慧用户才会这样做</div></div>
+      <div style="padding:8px 10px;border-radius:7px;border:1px solid rgba(150,100,255,0.2);background:rgba(150,100,255,0.05)"><div style="font-size:11px;font-weight:700;color:#a088ff;margin-bottom:3px">⏰ 紧迫型</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">时间窗口即将关闭</div></div>
+      <div style="padding:8px 10px;border-radius:7px;border:1px solid rgba(100,200,100,0.2);background:rgba(100,200,100,0.05)"><div style="font-size:11px;font-weight:700;color:#7dd87d;margin-bottom:3px">📊 数据型</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">真实数字说话</div></div>
+      <div style="padding:8px 10px;border-radius:7px;border:1px solid rgba(255,165,0,0.2);background:rgba(255,165,0,0.05)"><div style="font-size:11px;font-weight:700;color:#ffaa44;margin-bottom:3px">🤝 社群归属型</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">加入聪明交易者社群</div></div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn-p" onclick="genAB()"><i class="ti ti-bolt"></i> 生成所有版本</button><button class="btn-g" onclick="clearOut('tool-ab')">清除</button></div>
+  <div class="spin" id="spin-ab">正在生成 A/B 版本，包含完整文案...</div>
+  <div class="out" id="out-tool-ab"></div>
+</div>
+
+<!-- TOOL HISTORY -->
+<div class="page" id="page-tool-history">
+  <div class="ph"><div class="pt">历史记录</div><div class="ps">本次会话内所有生成内容</div></div>
+  <div id="hist-list"><div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;padding:48px 0">暂无记录</div></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /wrap -->
+
+<script>
+let _apiKey='';
+const hist=[];
+const selTypes={};
+
+function saveKey(){
+  const k=document.getElementById('api-key-in').value.trim();
+  if(!k.startsWith('sk-ant-')){
+    document.getElementById('api-status').textContent='格式有误，请检查';
+    document.getElementById('api-status').style.color='#ff4d6d';return;
+  }
+  _apiKey=k;
+  document.getElementById('api-status').textContent='已设置 ✓';
+  document.getElementById('api-status').style.color='#00e5a0';
+  document.getElementById('api-key-in').value='••••••••••••••••';
+}
+
+function nav(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg)pg.classList.add('active');
+  if(el)el.classList.add('active');
+}
+
+function selType(el,group){
+  el.closest('.tg').querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  selTypes[group]=el.dataset.t;
+  document.querySelectorAll('.dform[id^="'+group+'-"]').forEach(f=>f.classList.remove('active'));
+  const t=document.getElementById(group+'-'+el.dataset.t);
+  if(t)t.classList.add('active');
+}
+
+function getType(g){return selTypes[g]||null;}
+function clearOut(id){const o=document.getElementById('out-'+id);if(o){o.style.display='none';o.innerHTML='';}}
+function v(id){const el=document.getElementById(id);return el?el.value:'';}
+function getActiveTags(){return [...document.querySelectorAll('.tag.on')].map(t=>t.textContent).join(' ');}
+
+function addHist(type,content){
+  const ts=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  hist.unshift({type,content,ts});
+  const el=document.getElementById('hist-list');
+  el.innerHTML=hist.map(h=>`<div class="hist-item"><div class="hist-meta"><span class="hist-type">${h.type}</span><span style="font-size:11px;color:rgba(255,255,255,0.3)">${h.ts}</span></div><div class="hist-prev">${h.content.slice(0,200)}${h.content.length>200?'...':''}</div></div>`).join('');
+}
+
+// COMPLIANCE CHECK — subject-only length check, body for spam words
+const SPAM_HARD=['free','guaranteed','act now','limited time offer','no risk','cash bonus','click here','win big','100% free','earn $$$'];
+const SPAM_WARN=['winner','congratulations','urgent','exclusive','special offer','bonus'];
+
+function runComp(){
+  const subj=v('comp-subj').trim();
+  const body=v('comp-body').trim();
+  if(!subj&&!body){alert('请填写主题行或正文');return;}
+
+  const results=[];
+
+  // Subject checks
+  if(subj){
+    results.push({section:'主题行检测',items:[
+      {ok:subj.length<=40,label:`字符长度：${subj.length} 字符`,detail:subj.length>40?`超出 ${subj.length-40} 字符，建议缩短至 40 字符以内`:'符合规范，移动端不会被截断',critical:subj.length>60},
+      {ok:!/[A-Z]{4,}/.test(subj.replace(/CARDRADAR|NGN|USD|KYC|WAT|GMT|CTA/g,'')),label:'全大写词检测',detail:'全大写词（如 FREE NOW、WIN！）会触发垃圾邮件过滤器'},
+      {ok:!/(!!|!!!|\?\?\?|\$\$\$)/.test(subj),label:'重复标点检测',detail:'连续感叹号或特殊符号会显著降低到达率'},
+      {ok:(subj.match(/[🎁💰🔥⚡✨🎯📊]/g)||[]).length<=1,label:'Emoji 数量',detail:'建议只放 1 个 emoji，且放在最前面'},
+      {ok:!SPAM_HARD.some(w=>subj.toLowerCase().includes(w)),label:'高风险词检测',detail:SPAM_HARD.filter(w=>subj.toLowerCase().includes(w)).map(w=>`发现 "${w}"`).join('，')||'通过'},
+      {ok:!subj.toLowerCase().includes('gift card'),label:'"Gift Card" 敏感词',detail:'主题行中出现 "Gift Card" 存在被过滤风险，建议替换为 "your reward" 或 "your prize"'},
+    ]});
+  }
+
+  // Body checks
+  if(body){
+    const lo=body.toLowerCase();
+    const hardFound=SPAM_HARD.filter(w=>lo.includes(w));
+    const warnFound=SPAM_WARN.filter(w=>lo.includes(w));
+    const ctaCount=(body.match(/https?:\/\//g)||[]).length;
+    results.push({section:'正文检测',items:[
+      {ok:hardFound.length===0,label:'高风险垃圾词',detail:hardFound.length?`发现：${hardFound.map(w=>`"${w}"`).join('，')}`:'通过'},
+      {ok:warnFound.length===0,label:'中等风险词',detail:warnFound.length?`发现：${warnFound.map(w=>`"${w}"`).join('，')} — 可保留但建议减少`:'通过',warn:warnFound.length>0},
+      {ok:ctaCount<=3,label:`链接数量：${ctaCount} 个`,detail:ctaCount>3?'建议单封邮件链接不超过 3 个，CTA 按钮只放 1 个':'符合规范'},
+      {ok:!/(!!|!!!|\?\?\?|\$\$\$)/.test(body),label:'重复标点',detail:/!!/.test(body)?'发现连续感叹号，建议去掉':'通过'},
+      {ok:body.length>=80,label:`正文长度：${body.length} 字符`,detail:body.length<80?'正文过短，建议至少 3-5 句话':'长度合适'},
+    ]});
+  }
+
+  // Render
+  const el=document.getElementById('comp-out');
+  let html='';
+  results.forEach(r=>{
+    html+=`<div class="comp-box" style="margin-bottom:12px"><div class="comp-t">${r.section}</div>`;
+    r.items.forEach(item=>{
+      const color=item.ok?(item.warn?'#FFD700':'#00e5a0'):(item.critical?'#ff4d6d':'#ff4d6d');
+      const icon=item.ok?(item.warn?'⚠':'✓'):'⚠';
+      html+=`<div class="comp-item"><span class="icon" style="color:${color}">${icon}</span><div><div class="label" style="color:${color}">${item.label}</div>${item.detail?`<div class="detail">${item.detail}</div>`:''}</div></div>`;
+    });
+    html+='</div>';
+  });
+
+  // Score
+  const allItems=[...results.flatMap(r=>r.items)];
+  const passed=allItems.filter(i=>i.ok).length;
+  const total=allItems.length;
+  const score=Math.round(passed/total*100);
+  const scoreColor=score>=80?'#00e5a0':score>=60?'#FFD700':'#ff4d6d';
+  html+=`<div class="comp-box"><div class="comp-t">综合评分</div>
+    <div class="score-bar"><div class="score-label">合规评分</div><div class="score-track"><div class="score-fill" style="width:${score}%;background:${scoreColor}"></div></div><div class="score-val" style="color:${scoreColor}">${score}分</div></div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px">${score>=80?'✓ 内容合规，可以发送':score>=60?'⚠ 存在风险项，建议修改后发送':'✗ 风险较高，请先修改标红项再发送'}</div>
+  </div>`;
+
+  el.innerHTML=html;
+  el.style.display='block';
+}
+
+async function callAPI(prompt){
+  if(!_apiKey){alert('请先在顶部输入 Anthropic API Key 并点击确认');return null;}
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':_apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+  });
+  const d=await r.json();
+  if(d.error)throw new Error(d.error.message);
+  return d.content.map(b=>b.text||'').join('');
+}
+
+function renderEDMOut(data,outId){
+  const html=`
+    <div class="osec"><div class="olabel">SUBJECT LINE <button class="copy-sm" onclick="copyEl('os-s-${outId}')">复制</button></div><div class="otext subj" id="os-s-${outId}">${data.subject||''}</div></div>
+    <div class="osec"><div class="olabel">PREVIEW TEXT <button class="copy-sm" onclick="copyEl('os-p-${outId}')">复制</button></div><div class="otext" id="os-p-${outId}">${data.preview||''}</div></div>
+    <div class="osec"><div class="olabel">BODY <button class="copy-sm" onclick="copyEl('os-b-${outId}')">复制</button></div><div class="otext" id="os-b-${outId}">${data.body||''}</div></div>
+    <div class="osec"><div class="olabel">CTA</div><div class="otext cta">${data.cta||''}</div></div>
+    <div class="osec"><div class="olabel">T&C</div><div class="otext" style="font-size:12px">${data.tc||''}</div></div>
+    <div class="btn-row"><button class="btn-g" onclick="navigator.clipboard.writeText('Subject: ${(data.subject||'').replace(/'/g,"'")}\\nPreview: ${(data.preview||'').replace(/'/g,"'")}\\n\\n${(data.body||'').replace(/'/g,"'")}\\n\\nCTA: ${(data.cta||'').replace(/'/g,"'")}\\n${(data.tc||'').replace(/'/g,"'")}')">复制全部</button></div>`;
+  const el=document.getElementById(outId);
+  el.innerHTML=html;el.style.display='block';
+  addHist('EDM',`Subject: ${data.subject||''}\n${data.body||''}`);
+}
+
+function renderForumOut(text,outId){
+  const el=document.getElementById(outId);
+  el.innerHTML=`<div class="osec"><div class="olabel">帖文内容 <button class="copy-sm" onclick="copyEl('fo-t-${outId}')">复制</button></div><div class="otext" id="fo-t-${outId}">${text}</div></div>`;
+  el.style.display='block';
+  addHist('论坛帖文',text);
+}
+
+function renderSocialOut(data,outId){
+  const tags=getActiveTags();
+  const el=document.getElementById(outId);
+  el.innerHTML=`
+    <div class="osec"><div class="olabel">主文案 <button class="copy-sm" onclick="copyEl('so-m-${outId}')">复制</button></div><div class="otext" id="so-m-${outId}">${data.main||''}</div></div>
+    <div class="osec"><div class="olabel">备选版本 <button class="copy-sm" onclick="copyEl('so-a-${outId}')">复制</button></div><div class="otext" id="so-a-${outId}">${data.alt||''}</div></div>
+    <div class="osec"><div class="olabel">已选 HASHTAGS <button class="copy-sm" onclick="copyEl('so-t-${outId}')">复制</button></div><div class="otext" style="color:#02FFFF" id="so-t-${outId}">${tags}</div></div>`;
+  el.style.display='block';
+  addHist('社媒文案',`${data.main}\n\n${tags}`);
+}
+
+function copyEl(id){const el=document.getElementById(id);if(el)navigator.clipboard.writeText(el.textContent);}
+
+async function genEDM(series){
+  const spinMap={new:'spin-edm-new',active:'spin-edm-active',recall:'spin-edm-recall',general:'spin-edm-general'};
+  const outMap={new:'out-edm-new',active:'out-edm-active',recall:'out-edm-recall',general:'out-edm-general'};
+  const groupMap={new:'en',active:'ea',recall:'er',general:'eg'};
+  const spin=document.getElementById(spinMap[series]);
+  const outEl=document.getElementById(outMap[series]);
+  spin.style.display='block';outEl.style.display='none';
+  const group=groupMap[series];
+  const type=getType(group)||{new:'welcome',active:'rate',recall:'r30',general:'digest'}[series];
+  const typeDesc={welcome:'warm welcome email for a new registered user',activate:'D3 activation nudge for user who has not done their first rate comparison',first_trade:'D7 email pushing user who compared rates but never traded to complete first sale',rate:'real-time rate update email showing today highest rates with platform comparison data',activity:'activity launch notification email',feature:'new feature or community board announcement email',monthly:'personalized monthly stats recap email',winner:'winner notification email telling user they won a prize',survey:'survey invitation email with reward incentive',r30:'gentle 30-day re-engagement email showing missed rate opportunities',r60:'stronger 60-day winback with exclusive limited-time incentive',r90:'final heartfelt 90-day last attempt to win back user',exit:'ultra-short 3-question exit survey email',digest:'weekly community highlights email pushing users back to forum',security:'security reminder or account safety alert',referral:'referral program invitation',announce:'important platform announcement or policy change'};
+  let vars='';
+  if(series==='new'){
+    if(type==='welcome')vars=`Date:${v('en-w-date')}, Top rate:${v('en-w-rate')}, Platforms:${v('en-w-plat')}, Activity:${v('en-w-act')}`;
+    else if(type==='activate')vars=`Days:${v('en-a-days')}, Rate:${v('en-a-rate')}, Steps:${v('en-a-steps')}, Bonus:${v('en-a-bonus')}`;
+    else vars=`Days:${v('en-f-days')}, Card:${v('en-f-card')}, Platform:${v('en-f-plat')}, Incentive:${v('en-f-bonus')}`;
+  }else if(series==='active'){
+    if(type==='rate')vars=`Card:${v('ea-r-card')}, Time:${v('ea-r-time')}, P1:${v('ea-r-p1')}, P2:${v('ea-r-p2')}, P3:${v('ea-r-p3')}, P4:${v('ea-r-p4')}`;
+    else if(type==='activity')vars=`Name:${v('ea-a-name')}, Prize:${v('ea-a-prize')}, Start:${v('ea-a-start')}, End:${v('ea-a-end')}, Steps:${v('ea-a-steps')}, Extra:${v('ea-a-extra')}`;
+    else if(type==='feature')vars=`Feature:${v('ea-f-name')}, Date:${v('ea-f-date')}, Value:${v('ea-f-value')}, CTA:${v('ea-f-cta')}`;
+    else if(type==='monthly')vars=`Month:${v('ea-m-month')}, Count:${v('ea-m-count')}, Best:${v('ea-m-best')}, Extra:${v('ea-m-extra')}, Card:${v('ea-m-card')}`;
+    else if(type==='winner')vars=`Activity:${v('ea-w-act')}, Prize:${v('ea-w-prize')}, How:${v('ea-w-how')}, Next:${v('ea-w-next')}`;
+    else vars=`Topic:${v('ea-s-topic')}, Time:${v('ea-s-time')}, Prize:${v('ea-s-prize')}, Deadline:${v('ea-s-dead')}`;
+  }else if(series==='recall'){
+    if(type==='r30')vars=`Last:${v('er-30-last')}, Rate:${v('er-30-rate')}, Miss:${v('er-30-miss')}, Reason:${v('er-30-reason')}`;
+    else if(type==='r60')vars=`Last:${v('er-60-last')}, Bonus:${v('er-60-bonus')}, Exp:${v('er-60-exp')}, New:${v('er-60-new')}`;
+    else if(type==='r90')vars=`Last:${v('er-90-last')}, Hook:${v('er-90-hook')}, Bonus:${v('er-90-bonus')}`;
+    else vars=`Options:${v('er-e-opts')}, Bonus:${v('er-e-bonus')}`;
+  }else{
+    if(type==='digest')vars=`Top1:${v('eg-d-top1')}, Top2:${v('eg-d-top2')}, Users:${v('eg-d-user')}, Reward:${v('eg-d-reward')}`;
+    else if(type==='security')vars=`Type:${v('eg-s-type')}, Platform:${v('eg-s-plat')}, Tips:${v('eg-s-tips')}`;
+    else if(type==='referral')vars=`Mine:${v('eg-r-mine')}, Friend:${v('eg-r-friend')}, Cond:${v('eg-r-cond')}`;
+    else vars=`Title:${v('eg-a-title')}, Time:${v('eg-a-time')}, Changes:${v('eg-a-body')}, Action:${v('eg-a-action')}`;
+  }
+  const prompt=`You are a senior email copywriter for CardRadar, a Nigerian/African gift card rate comparison app. Write a "${typeDesc[type]}" email.
+Variables: ${vars}
+CRITICAL: NEVER use a personal username. Address as "Hey" or "Hey there" only. Subject: MAX 40 chars, sentence case, 1 emoji OK at start, NO spam words (free/win/guaranteed/act now/click here/no risk/cash bonus), avoid "Gift Card" phrase in subject. Body: conversational Nigerian English, 3-5 short sentences. CTA: specific verb. TC: one line ending "CardRadar App."
+Return ONLY valid JSON: {subject,preview,body,cta,tc}`;
+  try{
+    const raw=await callAPI(prompt);
+    if(!raw)return spin.style.display='none';
+    const d=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    spin.style.display='none';renderEDMOut(d,outMap[series]);
+  }catch(e){spin.style.display='none';alert('生成失败：'+e.message);}
+}
+
+async function genForum(section){
+  const spinMap={official:'spin-forum-official',risk:'spin-forum-risk',rate:'spin-forum-rate',market:'spin-forum-market',community:'spin-forum-community'};
+  const outMap={official:'out-forum-official',risk:'out-forum-risk',rate:'out-forum-rate',market:'out-forum-market',community:'out-forum-community'};
+  const groupMap={official:'fo',risk:'fr',rate:'frt',market:'fm',community:'fc'};
+  const spin=document.getElementById(spinMap[section]);
+  const outEl=document.getElementById(outMap[section]);
+  spin.style.display='block';outEl.style.display='none';
+  const group=groupMap[section];
+  const type=getType(group)||{official:'winner',risk:'scam',rate:'daily',market:'trend',community:'intro'}[section];
+  let ctx='',vars='';
+  if(section==='official'){
+    ctx='CardRadar Official board — type:'+type;
+    if(type==='winner'){const fake=v('fo-w-fake')==='yes';vars=`Month:${v('fo-w-month')}, Prize:${v('fo-w-prize')}, U1:${v('fo-w-u1')}, U2:${v('fo-w-u2')}, U3:${v('fo-w-u3')}, ${fake?'Generate 2 fictional 4th/5th users with Nigerian-style usernames and slightly lower counts':''}, Pool:${v('fo-w-pool')}, Claim:${v('fo-w-claim')}`;}
+    else if(type==='launch')vars=`Name:${v('fo-l-name')}, Start:${v('fo-l-start')}, End:${v('fo-l-end')}, Prize:${v('fo-l-prize')}, Steps:${v('fo-l-how')}, Secret:${v('fo-l-secret')}`;
+    else if(type==='pool')vars=`Total:${v('fo-p-total')}, Top5:${v('fo-p-top5')}, Quality:${v('fo-p-quality')}, Announce:${v('fo-p-announce')}`;
+    else if(type==='survey')vars=`Topic:${v('fo-s-topic')}, Dur:${v('fo-s-dur')}, Prize:${v('fo-s-prize')}, Dead:${v('fo-s-dead')}`;
+    else if(type==='report')vars=`Period:${v('fo-r-period')}, Data:${v('fo-r-data')}, Rate:${v('fo-r-rate')}, Comm:${v('fo-r-comm')}`;
+    else vars=`Feature:${v('fo-f-name')}, Date:${v('fo-f-date')}, Pain:${v('fo-f-pain')}, How:${v('fo-f-how')}`;
+  }else if(section==='risk'){
+    ctx='Risk Reports board — type:'+type;
+    if(type==='scam')vars=`Plat:${v('fr-s-plat')}, Type:${v('fr-s-type')}, Desc:${v('fr-s-desc')}, Status:${v('fr-s-status')}, Evi:${v('fr-s-evi')}`;
+    else if(type==='delay')vars=`Plat:${v('fr-d-plat')}, Dur:${v('fr-d-dur')}, Users:${v('fr-d-users')}, Resp:${v('fr-d-resp')}, Advice:${v('fr-d-advice')}`;
+    else if(type==='tips')vars=`Topic:${v('fr-t-topic')}, Tips:${v('fr-t-tips')}`;
+    else vars=`Note:${v('fr-g-note')}`;
+  }else if(section==='rate'){
+    const card=v('frt-d-card')||v('frt-c-card')||v('frt-dis-card');
+    ctx=card+' board — type:'+type;
+    if(type==='daily')vars=`Card:${v('frt-d-card')}, Cur:${v('frt-d-cur')}, Time:${v('frt-d-time')}, P1:${v('frt-d-p1')}, P2:${v('frt-d-p2')}, Low:${v('frt-d-p3')}, Trend:${v('frt-d-trend')}`;
+    else if(type==='callout')vars=`Card:${v('frt-c-card')}, Rate:${v('frt-c-rate')}, Act:${v('frt-c-act')}, Q:${v('frt-c-q')}`;
+    else vars=`Card:${v('frt-dis-card')}, Topic:${v('frt-dis-topic')}, Bg:${v('frt-dis-bg')}`;
+  }else if(section==='market'){
+    ctx='Market Intel board — type:'+type;
+    if(type==='trend')vars=`Period:${v('fm-t-period')}, Trend:${v('fm-t-trend')}, Top:${v('fm-t-top')}, Advice:${v('fm-t-advice')}`;
+    else if(type==='rule')vars=`Plat:${v('fm-r-plat')}, Date:${v('fm-r-date')}, Change:${v('fm-r-change')}, Impact:${v('fm-r-impact')}`;
+    else if(type==='review')vars=`Plats:${v('fm-rv-plat')}, Dims:${v('fm-rv-dims')}, Q:${v('fm-rv-q')}`;
+    else vars=`Period:${v('fm-w-period')}, Top:${v('fm-w-top')}, News:${v('fm-w-news')}, Next:${v('fm-w-next')}`;
+  }else{
+    ctx='Community board:'+(v('fc-i-board')||'General')+' type:'+type;
+    if(type==='intro')vars=`Board:${v('fc-i-board')}, Purpose:${v('fc-i-purpose')}, Welcome:${v('fc-i-welcome')}, Rules:${v('fc-i-rules')}`;
+    else if(type==='topic')vars=`Q:${v('fc-t-q')}, Bg:${v('fc-t-bg')}, Tone:${v('fc-t-tone')}`;
+    else if(type==='newbie')vars=`Act:${v('fc-n-act')}, First:${v('fc-n-first')}, Rules:${v('fc-n-rules')}`;
+    else vars=`Period:${v('fc-d-period')}, Top1:${v('fc-d-top1')}, Top2:${v('fc-d-top2')}, Users:${v('fc-d-users')}, Next:${v('fc-d-next')}`;
+  }
+  const prompt=`Write a CardRadar community forum post in English. Context: ${ctx}. Variables: ${vars}. Rules: community voice not corporate, plain text no markdown, max 220 words, end with CTA or question. Winner posts: rank clearly, include claim instructions, end with "CardRadar App reserves the right to final interpretation of all reward decisions." Board intro: use hook "This is the spot. [one line what to do here]." Return only the post text.`;
+  try{
+    const text=await callAPI(prompt);
+    if(!text)return spin.style.display='none';
+    spin.style.display='none';renderForumOut(text.trim(),outMap[section]);
+  }catch(e){spin.style.display='none';alert('生成失败：'+e.message);}
+}
+
+async function genSocial(platform){
+  const spinMap={x:'spin-social-x',ig:'spin-social-ig',tiktok:'spin-social-tiktok'};
+  const outMap={x:'out-social-x',ig:'out-social-ig',tiktok:'out-social-tiktok'};
+  const groupMap={x:'sx',ig:'sig',tiktok:'stk'};
+  const spin=document.getElementById(spinMap[platform]);
+  const outEl=document.getElementById(outMap[platform]);
+  spin.style.display='block';outEl.style.display='none';
+  const type=getType(groupMap[platform])||'activity';
+  const plRules={x:'Max 280 chars. Punchy, line breaks, conversational Nigerian English.',ig:'Instagram caption up to 300 words, storytelling style, line breaks for readability.',tiktok:'Caption max 150 chars. Hook in first 3 words. Also include a separate 1-sentence spoken 3-second video hook script.'};
+  const infoMap={x:v('sx-info'),ig:v('sig-info'),tiktok:`Topic:${v('stk-topic')}, Hook data:${v('stk-hook')}, Audience:${v('stk-audience')}, CTA:${v('stk-cta')}`};
+  const toneMap={x:v('sx-tone'),ig:v('sig-tone'),tiktok:'energetic'};
+  const prompt=`Write a ${platform.toUpperCase()} social media post for CardRadar (Nigerian gift card rate comparison app). Rules: ${plRules[platform]}. Content type: ${type}. Tone: ${toneMap[platform]}. Info: ${infoMap[platform]}. Return ONLY valid JSON: {main, alt, extra_tags}. extra_tags: 3-4 additional relevant hashtags.`;
+  try{
+    const raw=await callAPI(prompt);
+    if(!raw)return spin.style.display='none';
+    const d=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    spin.style.display='none';renderSocialOut(d,outMap[platform]);
+  }catch(e){spin.style.display='none';alert('生成失败：'+e.message);}
+}
+
+async function genAB(){
+  const spin=document.getElementById('spin-ab');
+  const outEl=document.getElementById('out-tool-ab');
+  spin.style.display='block';outEl.style.display='none';
+  const count=parseInt(v('ab-count'));
+  const audience=v('ab-audience');
+  const audienceDesc={new:'new users who just registered within 7 days',active:'active users who have used the app before',recall:'dormant users who have not logged in for 30+ days'};
+  const hookTypes=[
+    {id:'reward',name:'🎁 奖励型',color:'#FFD700',borderColor:'rgba(255,215,0,0.3)',desc:'直接展示奖励利益'},
+    {id:'fomo',name:'😤 后悔/FOMO 型',color:'#ff7070',borderColor:'rgba(255,100,100,0.3)',desc:'你已经错过了...'},
+    {id:'smart',name:'🧠 聪明人型',color:'#02FFFF',borderColor:'rgba(2,255,255,0.3)',desc:'智慧用户才会这样做'},
+    {id:'urgency',name:'⏰ 紧迫型',color:'#a088ff',borderColor:'rgba(150,100,255,0.3)',desc:'时间窗口即将关闭'},
+    {id:'data',name:'📊 数据型',color:'#7dd87d',borderColor:'rgba(100,200,100,0.3)',desc:'真实数字说话'},
+    {id:'community',name:'🤝 社群归属型',color:'#ffaa44',borderColor:'rgba(255,165,0,0.3)',desc:'加入聪明交易者社群'},
+  ].slice(0,count);
+
+  const prompt=`You are a senior email marketing strategist for CardRadar, a Nigerian/African gift card rate comparison app.
+Generate ${count} complete email versions, each using a different hook type.
+Campaign purpose: ${v('ab-purpose')}
+Key info: ${v('ab-info')}
+Target audience: ${audienceDesc[audience]}
+
+Hook types to generate (one version each):
+${hookTypes.map((h,i)=>`${i+1}. ${h.name} (${h.desc})`).join('\n')}
+
+For each version provide:
+- hook_type: the hook type ID (reward/fomo/smart/urgency/data/community)
+- subject: email subject line — MAX 40 chars, sentence case, 1 emoji OK at start, NO spam words (free/win/guaranteed/click here/no risk), avoid "Gift Card" in subject
+- preview: preview text max 80 chars, complements subject
+- body: 3-5 sentences in conversational Nigerian English, address as "Hey there", NEVER use personal name, make the hook type very clear in the writing style
+- cta: action-oriented CTA button text (not "Click Here")
+- hook_note: one short sentence explaining why this hook works
+
+Return ONLY valid JSON: {versions: [{hook_type, subject, preview, body, cta, hook_note}]}
+No markdown, no explanation outside JSON.`;
+
+  try{
+    const raw=await callAPI(prompt);
+    if(!raw)return spin.style.display='none';
+    const d=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const hookMeta={reward:{name:'🎁 奖励型',color:'#FFD700',bg:'rgba(255,215,0,0.08)',border:'rgba(255,215,0,0.25)'},fomo:{name:'😤 后悔/FOMO 型',color:'#ff7070',bg:'rgba(255,100,100,0.08)',border:'rgba(255,100,100,0.25)'},smart:{name:'🧠 聪明人型',color:'#02FFFF',bg:'rgba(2,255,255,0.08)',border:'rgba(2,255,255,0.25)'},urgency:{name:'⏰ 紧迫型',color:'#a088ff',bg:'rgba(150,100,255,0.08)',border:'rgba(150,100,255,0.25)'},data:{name:'📊 数据型',color:'#7dd87d',bg:'rgba(100,200,100,0.08)',border:'rgba(100,200,100,0.25)'},community:{name:'🤝 社群归属型',color:'#ffaa44',bg:'rgba(255,165,0,0.08)',border:'rgba(255,165,0,0.25)'}};
+    const html=`<div class="ab-grid" style="grid-template-columns:${count<=3?'repeat('+count+',1fr)':'repeat(3,1fr)'}">`+d.versions.map((ver,i)=>{
+      const m=hookMeta[ver.hook_type]||{name:ver.hook_type,color:'#fff',bg:'rgba(255,255,255,0.05)',border:'rgba(255,255,255,0.15)'};
+      return `<div class="ab-card" style="border-color:${m.border};background:${m.bg}">
+        <div><div style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;background:${m.bg};border:1px solid ${m.border};color:${m.color};margin-bottom:8px">${m.name}</div></div>
+        <div class="ab-label-row">主题行</div>
+        <div class="ab-subj">${ver.subject||''}</div>
+        <div class="ab-label-row" style="margin-top:8px">预览文字</div>
+        <div class="ab-prev">${ver.preview||''}</div>
+        <div class="ab-label-row" style="margin-top:8px">正文</div>
+        <div class="ab-body-text">${ver.body||''}</div>
+        <div style="margin-top:10px"><div class="ab-cta-pill">${ver.cta||''}</div></div>
+        <div class="ab-note" style="margin-top:8px">📌 ${ver.hook_note||''}</div>
+        <button class="copy-sm" style="margin-top:10px" onclick="navigator.clipboard.writeText('Subject: ${(ver.subject||'').replace(/'/g,"\\'")}\\nPreview: ${(ver.preview||'').replace(/'/g,"\\'")}\\n\\n${(ver.body||'').replace(/'/g,"\\'")}\\n\\nCTA: ${(ver.cta||'').replace(/'/g,"\\'")}')">复制全版本</button>
+      </div>`;
+    }).join('')+'</div>';
+    outEl.innerHTML=html;
+    outEl.style.display='block';
+    spin.style.display='none';
+    addHist('A/B测试',d.versions.map(v=>`[${v.hook_type}] ${v.subject}`).join('\n'));
+  }catch(e){spin.style.display='none';alert('生成失败：'+e.message);}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const today=new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[type=date]').forEach(el=>{if(!el.value)el.value=today;});
+  const now=new Date();
+  const local=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  document.querySelectorAll('input[type=datetime-local]').forEach(el=>{if(!el.value)el.value=local;});
+});
+</script>
+</body>
+</html>
